@@ -1,7 +1,8 @@
 """Tests for OpenCode adapter."""
 
 from agent_caster.adapters.opencode import OpenCodeAdapter
-from agent_caster.models import AgentDef, ModelConfig
+from agent_caster.groups import BASH_POLICIES, SAFE_BASH_PATTERNS
+from agent_caster.models import AgentDef, ModelConfig, TargetConfig
 
 
 def test_cast_explorer(sample_explorer, opencode_config, snapshot):
@@ -60,3 +61,105 @@ def test_cast_all_fixtures(fixtures_dir, opencode_config, snapshot):
     assert len(outputs) == 3
     contents = {o.path.split("/")[-1]: o.content for o in outputs}
     assert contents == snapshot
+
+
+# -- Bash policy group tests ---------------------------------------------------
+
+def test_safe_bash_expands_patterns(opencode_config):
+    """safe-bash group should expand to SAFE_BASH_PATTERNS."""
+    agent = AgentDef(
+        name="test",
+        description="Test",
+        capabilities=["read", "safe-bash"],
+    )
+    adapter = OpenCodeAdapter()
+    tools, bash_allowed, _ = adapter._expand_capabilities(
+        agent.capabilities, opencode_config.capability_map
+    )
+    assert tools.get("bash") is True
+    for p in SAFE_BASH_PATTERNS:
+        assert p in bash_allowed
+
+
+def test_readonly_bash_is_superset_of_safe(opencode_config):
+    """readonly-bash should contain all patterns from safe-bash plus extras."""
+    agent = AgentDef(
+        name="test",
+        description="Test",
+        capabilities=["readonly-bash"],
+    )
+    adapter = OpenCodeAdapter()
+    _, bash_allowed, _ = adapter._expand_capabilities(
+        agent.capabilities, opencode_config.capability_map
+    )
+    for p in SAFE_BASH_PATTERNS:
+        assert p in bash_allowed
+    assert len(bash_allowed) > len(SAFE_BASH_PATTERNS)
+
+
+def test_bash_policy_merges_with_explicit_patterns(opencode_config):
+    """safe-bash + explicit bash patterns should merge (union)."""
+    agent = AgentDef(
+        name="test",
+        description="Test",
+        capabilities=[
+            "safe-bash",
+            {"bash": ["npm test*", "cargo build*"]},
+        ],
+    )
+    adapter = OpenCodeAdapter()
+    _, bash_allowed, _ = adapter._expand_capabilities(
+        agent.capabilities, opencode_config.capability_map
+    )
+    # Should contain safe-bash patterns
+    for p in SAFE_BASH_PATTERNS:
+        assert p in bash_allowed
+    # Plus explicit patterns
+    assert "npm test*" in bash_allowed
+    assert "cargo build*" in bash_allowed
+
+
+def test_bash_policy_deduplicates(opencode_config):
+    """Duplicate patterns across policy + explicit should be deduped."""
+    agent = AgentDef(
+        name="test",
+        description="Test",
+        capabilities=[
+            "safe-bash",
+            {"bash": ["echo *", "custom cmd*"]},  # "echo *" overlaps with safe-bash
+        ],
+    )
+    adapter = OpenCodeAdapter()
+    _, bash_allowed, _ = adapter._expand_capabilities(
+        agent.capabilities, opencode_config.capability_map
+    )
+    assert bash_allowed.count("echo *") == 1
+    assert "custom cmd*" in bash_allowed
+
+
+def test_read_group_expands_tools(opencode_config):
+    """'read' group should expand to read, glob, grep tools."""
+    agent = AgentDef(
+        name="test",
+        description="Test",
+        capabilities=["read"],
+    )
+    adapter = OpenCodeAdapter()
+    tools, _, _ = adapter._expand_capabilities(
+        agent.capabilities, opencode_config.capability_map
+    )
+    assert tools == {"read": True, "glob": True, "grep": True}
+
+
+def test_write_group_expands_tools(opencode_config):
+    """'write' group should expand to write, edit tools."""
+    agent = AgentDef(
+        name="test",
+        description="Test",
+        capabilities=["write"],
+    )
+    adapter = OpenCodeAdapter()
+    tools, _, _ = adapter._expand_capabilities(
+        agent.capabilities, opencode_config.capability_map
+    )
+    assert tools == {"write": True, "edit": True}

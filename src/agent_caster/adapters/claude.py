@@ -2,20 +2,11 @@
 
 from __future__ import annotations
 
-from agent_caster.log import logger
+from agent_caster.groups import BASH_POLICIES, TOOL_GROUPS
 from agent_caster.models import AgentDef, ModelConfig, OutputFile, TargetConfig
 
-# Built-in capability groups mapped to Claude Code tool names
-BUILTIN_CAPABILITY_GROUPS: dict[str, list[str]] = {
-    "read-code": ["Read", "Glob", "Grep"],
-    "write-code": ["Write", "Edit"],
-    "write-report": ["Write"],
-    "web-access": ["WebFetch", "WebSearch"],
-    "web-read": ["WebFetch"],
-}
-
-# OpenCode-style tool flags -> Claude tool names (for capability_map interpretation)
-_TOOL_FLAG_MAP: dict[str, str] = {
+# Semantic tool id -> Claude Code tool name
+_TOOL_NAME_MAP: dict[str, str] = {
     "read": "Read",
     "glob": "Glob",
     "grep": "Grep",
@@ -48,27 +39,49 @@ class ClaudeAdapter:
         capabilities: list[str | dict],
         capability_map: dict[str, dict[str, bool]],
     ) -> tuple[list[str], list[str], list[str]]:
-        """Expand raw capabilities into Claude tool names, bash patterns, delegates."""
+        """Expand raw capabilities into Claude tool names, bash patterns, delegates.
+
+        Bash policy groups (safe-bash, readonly-bash) and explicit ``bash: [...]``
+        entries are **merged** — the final whitelist is the union of all patterns.
+        """
         tools: set[str] = set()
         bash_patterns: list[str] = []
         delegates: list[str] = []
 
         for cap in capabilities:
             if isinstance(cap, str):
-                if cap in BUILTIN_CAPABILITY_GROUPS:
-                    tools.update(BUILTIN_CAPABILITY_GROUPS[cap])
+                # Bash policy group
+                if cap in BASH_POLICIES:
+                    bash_patterns.extend(BASH_POLICIES[cap])
+                # Built-in tool group
+                elif cap in TOOL_GROUPS:
+                    for tool_id in TOOL_GROUPS[cap]:
+                        claude_name = _TOOL_NAME_MAP.get(tool_id)
+                        if claude_name:
+                            tools.add(claude_name)
+                # User-defined capability_map from refit.toml
                 elif cap in capability_map:
                     for flag in capability_map[cap]:
-                        claude_name = _TOOL_FLAG_MAP.get(flag)
+                        claude_name = _TOOL_NAME_MAP.get(flag)
                         if claude_name:
                             tools.add(claude_name)
                 else:
-                    logger.warning(f"Unknown capability group for claude adapter: {cap!r}")
+                    # Pass through as-is — the platform may support it natively
+                    tools.add(cap)
             elif isinstance(cap, dict):
                 if "bash" in cap:
-                    bash_patterns = cap["bash"] or []
+                    bash_patterns.extend(cap["bash"] or [])
                 if "delegate" in cap:
                     delegates = cap["delegate"] or []
+
+        # Deduplicate bash patterns while preserving order
+        seen: set[str] = set()
+        deduped: list[str] = []
+        for p in bash_patterns:
+            if p not in seen:
+                seen.add(p)
+                deduped.append(p)
+        bash_patterns = deduped
 
         return sorted(tools), bash_patterns, delegates
 
@@ -101,19 +114,19 @@ class ClaudeAdapter:
 
     def _serialize_frontmatter(
         self,
+        name: str,
         description: str,
         model: str,
-        allowed_tools: list[str],
+        tools: list[str],
     ) -> str:
         lines = ["---"]
+        lines.append(f"name: {name}")
         lines.append(f"description: {description}")
+
+        if tools:
+            lines.append(f"tools: {', '.join(tools)}")
+
         lines.append(f"model: {model}")
-
-        if allowed_tools:
-            lines.append("allowed_tools:")
-            for tool in allowed_tools:
-                lines.append(f"  - {tool}")
-
         lines.append("---")
         return "\n".join(lines)
 
@@ -122,10 +135,11 @@ class ClaudeAdapter:
             agent.capabilities, config.capability_map
         )
 
+        name = agent.name
         description = agent.description
         model = self._resolve_model(agent.model, config.model_map)
         allowed_tools = self._build_allowed_tools(tools, bash_patterns, delegates)
 
-        fm = self._serialize_frontmatter(description, model, allowed_tools)
+        fm = self._serialize_frontmatter(name, description, model, allowed_tools)
         prompt = agent.prompt_content
-        return f"{fm}\n\n{prompt}" if prompt else fm
+        return f"{fm}\n{prompt}" if prompt else fm

@@ -9,7 +9,7 @@ description = "Cross-platform AI coding agent definition caster"
 requires-python = ">=3.11"
 license = "MIT"
 dependencies = [
-    "typer[all]>=0.15.0",
+    "typer>=0.15.0",
     "pydantic>=2.0",
     "pyyaml>=6.0",
     "loguru>=0.7.0",

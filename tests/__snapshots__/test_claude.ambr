@@ -2,34 +2,22 @@
 # name: test_cast_aligner
   '''
   ---
+  name: aligner
   description: Precision Aligner. Makes targeted code changes.
+  tools: Edit, Glob, Grep, Read, Write
   model: sonnet
-  allowed_tools:
-    - Edit
-    - Glob
-    - Grep
-    - Read
-    - Write
   ---
-  
   # Aligner
   '''
 # ---
 # name: test_cast_explorer_with_bash
   '''
   ---
+  name: explorer
   description: Code Explorer. Reads and analyzes source code.
+  tools: Bash(bunx repomix@latest*), Bash(npx repomix@latest*), Glob, Grep, Read, WebFetch, Write, context7
   model: opus
-  allowed_tools:
-    - Bash(bunx repomix@latest*)
-    - Bash(npx repomix@latest*)
-    - Glob
-    - Grep
-    - Read
-    - WebFetch
-    - Write
   ---
-  
   # Explorer
   
   Read-only code exploration agent.
@@ -38,20 +26,11 @@
 # name: test_cast_orchestrator_with_delegates
   '''
   ---
+  name: orchestrator
   description: Orchestrator. Coordinates sub-agents.
+  tools: Bash(cat*), Bash(git status*), Bash(ls*), Glob, Grep, Read, Task(aligner), Task(explorer), Write
   model: opus
-  allowed_tools:
-    - Bash(cat*)
-    - Bash(git status*)
-    - Bash(ls*)
-    - Glob
-    - Grep
-    - Read
-    - Task(aligner)
-    - Task(explorer)
-    - Write
   ---
-  
   # Orchestrator
   '''
 # ---

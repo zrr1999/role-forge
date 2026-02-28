@@ -5,17 +5,8 @@ Migrated from precision-alignment-agent/adapters/opencode/generate.py.
 
 from __future__ import annotations
 
-from agent_caster.log import logger
+from agent_caster.groups import BASH_POLICIES, TOOL_GROUPS
 from agent_caster.models import AgentDef, ModelConfig, OutputFile, TargetConfig
-
-# Built-in capability groups (default, overridable via capability_map)
-BUILTIN_CAPABILITY_GROUPS: dict[str, dict[str, bool]] = {
-    "read-code": {"read": True, "glob": True, "grep": True},
-    "write-code": {"write": True, "edit": True},
-    "write-report": {"write": True},
-    "web-access": {"webfetch": True, "websearch": True},
-    "web-read": {"webfetch": True},
-}
 
 
 class OpenCodeAdapter:
@@ -38,27 +29,48 @@ class OpenCodeAdapter:
         capabilities: list[str | dict],
         capability_map: dict[str, dict[str, bool]],
     ) -> tuple[dict[str, bool], list[str], list[str]]:
-        """Expand raw capabilities into OpenCode tools, bash patterns, delegates."""
-        all_groups = {**BUILTIN_CAPABILITY_GROUPS, **capability_map}
+        """Expand raw capabilities into OpenCode tools, bash patterns, delegates.
 
+        Bash policy groups (safe-bash, readonly-bash) and explicit ``bash: [...]``
+        entries are **merged** — the final whitelist is the union of all patterns.
+        """
         tools: dict[str, bool] = {}
         bash_allowed: list[str] = []
         delegates: list[str] = []
 
         for cap in capabilities:
             if isinstance(cap, str):
-                if cap in all_groups:
-                    tools.update(all_groups[cap])
+                # Bash policy group
+                if cap in BASH_POLICIES:
+                    bash_allowed.extend(BASH_POLICIES[cap])
+                    tools["bash"] = True
+                # Built-in tool group
+                elif cap in TOOL_GROUPS:
+                    for tool_id in TOOL_GROUPS[cap]:
+                        tools[tool_id] = True
+                # User-defined capability_map from refit.toml
+                elif cap in capability_map:
+                    tools.update(capability_map[cap])
                 else:
-                    logger.warning(f"Unknown capability group: {cap!r}")
+                    # Pass through as-is — the platform may support it natively
+                    tools[cap] = True
             elif isinstance(cap, dict):
                 if "bash" in cap:
-                    bash_allowed = cap["bash"] or []
-                    tools["bash"] = bool(bash_allowed)
+                    bash_allowed.extend(cap["bash"] or [])
+                    tools["bash"] = True
                 if "delegate" in cap:
                     delegates = cap["delegate"] or []
                     if delegates:
                         tools["task"] = True
+
+        # Deduplicate bash patterns while preserving order
+        seen: set[str] = set()
+        deduped: list[str] = []
+        for p in bash_allowed:
+            if p not in seen:
+                seen.add(p)
+                deduped.append(p)
+        bash_allowed = deduped
 
         return {k: v for k, v in tools.items() if v}, bash_allowed, delegates
 
