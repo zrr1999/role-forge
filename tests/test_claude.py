@@ -2,7 +2,7 @@
 
 from agent_caster.adapters.claude import ClaudeAdapter
 from agent_caster.groups import SAFE_BASH_PATTERNS
-from agent_caster.models import AgentDef, ModelConfig
+from agent_caster.models import AgentDef
 
 
 def test_cast_aligner(sample_aligner, claude_config, snapshot):
@@ -27,6 +27,7 @@ def test_cast_orchestrator_with_delegates(sample_orchestrator, claude_config, sn
 
 
 # -- Bash policy group tests ---------------------------------------------------
+
 
 def test_safe_bash_expands_to_bash_patterns(claude_config):
     """safe-bash should generate Bash(...) entries in allowed_tools."""
@@ -88,7 +89,5 @@ def test_read_group_maps_to_claude_tools(claude_config):
         capabilities=["read"],
     )
     adapter = ClaudeAdapter()
-    tools, _, _ = adapter._expand_capabilities(
-        agent.capabilities, claude_config.capability_map
-    )
+    tools, _, _ = adapter._expand_capabilities(agent.capabilities, claude_config.capability_map)
     assert set(tools) == {"Glob", "Grep", "Read"}

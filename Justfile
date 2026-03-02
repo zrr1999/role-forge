@@ -4,7 +4,7 @@ default:
 
 # Install dependencies in development mode
 install:
-    uv sync --dev
+    uv sync
     uvx prek install
 
 # Format all code
@@ -19,7 +19,7 @@ lint:
 
 # Type check
 check:
-    uvx ty check
+    uvx ty check src/
 
 # Run tests (quick, no coverage)
 test:

@@ -1,8 +1,8 @@
 """Tests for OpenCode adapter."""
 
 from agent_caster.adapters.opencode import OpenCodeAdapter
-from agent_caster.groups import BASH_POLICIES, SAFE_BASH_PATTERNS
-from agent_caster.models import AgentDef, ModelConfig, TargetConfig
+from agent_caster.groups import SAFE_BASH_PATTERNS
+from agent_caster.models import AgentDef, ModelConfig
 
 
 def test_cast_explorer(sample_explorer, opencode_config, snapshot):
@@ -64,6 +64,7 @@ def test_cast_all_fixtures(fixtures_dir, opencode_config, snapshot):
 
 
 # -- Bash policy group tests ---------------------------------------------------
+
 
 def test_safe_bash_expands_patterns(opencode_config):
     """safe-bash group should expand to SAFE_BASH_PATTERNS."""
@@ -145,9 +146,7 @@ def test_read_group_expands_tools(opencode_config):
         capabilities=["read"],
     )
     adapter = OpenCodeAdapter()
-    tools, _, _ = adapter._expand_capabilities(
-        agent.capabilities, opencode_config.capability_map
-    )
+    tools, _, _ = adapter._expand_capabilities(agent.capabilities, opencode_config.capability_map)
     assert tools == {"read": True, "glob": True, "grep": True}
 
 
@@ -159,7 +158,5 @@ def test_write_group_expands_tools(opencode_config):
         capabilities=["write"],
     )
     adapter = OpenCodeAdapter()
-    tools, _, _ = adapter._expand_capabilities(
-        agent.capabilities, opencode_config.capability_map
-    )
+    tools, _, _ = adapter._expand_capabilities(agent.capabilities, opencode_config.capability_map)
     assert tools == {"write": True, "edit": True}

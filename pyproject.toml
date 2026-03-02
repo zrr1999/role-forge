@@ -1,19 +1,19 @@
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatch-vcs", "hatchling"]
 build-backend = "hatchling.build"
 
 [project]
 name = "agent-caster"
-dynamic = ["version"]
 description = "Cross-platform AI coding agent definition caster"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = "MIT"
 dependencies = [
-    "typer>=0.15.0",
-    "pydantic>=2.0",
-    "pyyaml>=6.0",
-    "loguru>=0.7.0",
+  "loguru>=0.7.0",
+  "pydantic>=2.0",
+  "pyyaml>=6.0",
+  "typer>=0.15.0",
 ]
+dynamic = ["version"]
 
 [project.scripts]
 agent-caster = "agent_caster.cli:app"
@@ -22,14 +22,18 @@ agent-caster = "agent_caster.cli:app"
 opencode = "agent_caster.adapters.opencode:OpenCodeAdapter"
 claude = "agent_caster.adapters.claude:ClaudeAdapter"
 
+[project.urls]
+Homepage = "https://github.com/zrr1999/agent-caster"
+Repository = "https://github.com/zrr1999/agent-caster"
+
 [dependency-groups]
 dev = [
-    { include-group = "test" },
+  { include-group = "test" },
 ]
 test = [
-    "pytest>=8.0",
-    "pytest-cov>=6.0",
-    "syrupy>=4.0",
+  "pytest>=8.0",
+  "pytest-cov>=6.0",
+  "syrupy>=4.0",
 ]
 
 [tool.pytest.ini_options]
@@ -45,43 +49,46 @@ omit = ["*/tests/*"]
 precision = 2
 show_missing = true
 exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if __name__ == .__main__.:",
-    "if TYPE_CHECKING:",
-    "@abstractmethod",
-    "\\.\\.\\.",
+  "pragma: no cover",
+  "def __repr__",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+  "@abstractmethod",
+  "\\.\\.\\.",
 ]
 
 [tool.ruff]
 line-length = 100
 src = ["src", "tests"]
 target-version = "py311"
+exclude = ["src/agent_caster/_version.py"]
 
 [tool.ruff.lint]
 select = [
-    "F",     # pyflakes
-    "E",     # pycodestyle errors
-    "W",     # pycodestyle warnings
-    "I",     # isort
-    "B",     # flake8-bugbear
-    "C4",    # flake8-comprehensions
-    "UP",    # pyupgrade
-    "SIM",   # flake8-simplify
-    "RUF",   # ruff-specific rules
-    "PGH",   # pygrep-hooks
-    "FA",    # flake8-future-annotations
-    "YTT",   # flake8-2020
+  "F",  # pyflakes
+  "E",  # pycodestyle errors
+  "W",  # pycodestyle warnings
+  "I",  # isort
+  "B",  # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  "UP",  # pyupgrade
+  "SIM",  # flake8-simplify
+  "RUF",  # ruff-specific rules
+  "PGH",  # pygrep-hooks
+  "FA",  # flake8-future-annotations
+  "YTT",  # flake8-2020
 ]
+ignore = ["PGH003", "B008"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["agent_caster"]
+required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]
-"tests/**" = ["B011"]
+"__init__.py" = ["F401", "I002"]
+"tests/**" = ["B011", "I002"]
 
 [tool.ruff.format]
 quote-style = "double"
