@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from agent_caster.adapters.claude import ClaudeAdapter
+from agent_caster.adapters.cursor import CursorAdapter
 from agent_caster.adapters.opencode import OpenCodeAdapter
 
 BUILTIN_ADAPTERS: dict[str, type] = {
     "opencode": OpenCodeAdapter,
     "claude": ClaudeAdapter,
+    "cursor": CursorAdapter,
 }
 
 
