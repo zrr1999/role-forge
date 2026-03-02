@@ -38,15 +38,3 @@ rev = "v1.33.1"
 hooks = [
   { id = "typos", args = ["--force-exclude"] },
 ]
-
-[[repos]]
-# TODO: switch to astral-sh/ty-pre-commit once available
-repo = "local"
-
-[[repos.hooks]]
-id = "ty"
-name = "ty type check"
-language = "system"
-entry = "uvx ty check src/"
-types = ["python"]
-pass_filenames = false
