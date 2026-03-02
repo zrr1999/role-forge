@@ -64,3 +64,28 @@ def test_split_frontmatter_no_closing():
 def test_load_agents_missing_dir():
     with pytest.raises(LoadError):
         load_agents(Path("/nonexistent/dir"))
+
+
+def test_load_agents_skips_bad_file(tmp_path: Path) -> None:
+    """One malformed file should be skipped while valid agents still load."""
+    agents_dir = tmp_path / "roles"
+    agents_dir.mkdir()
+
+    # Write a valid agent
+    (agents_dir / "good.md").write_text("---\nname: good-agent\ndescription: ok\n---\n# Good")
+    # Write a file without frontmatter — this will raise LoadError
+    (agents_dir / "bad.md").write_text("no frontmatter here\n")
+
+    agents = load_agents(agents_dir)
+    assert len(agents) == 1
+    assert agents[0].name == "good-agent"
+
+
+def test_load_agents_strict_raises_on_bad_file(tmp_path: Path) -> None:
+    """strict=True should propagate the LoadError from the first bad file."""
+    agents_dir = tmp_path / "roles"
+    agents_dir.mkdir()
+    (agents_dir / "bad.md").write_text("no frontmatter here\n")
+
+    with pytest.raises(LoadError):
+        load_agents(agents_dir, strict=True)

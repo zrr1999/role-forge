@@ -14,15 +14,25 @@ class LoadError(Exception):
     """Raised when an agent definition file cannot be parsed."""
 
 
-def load_agents(agents_dir: Path) -> list[AgentDef]:
-    """Load all agent definitions from a directory, sorted by name."""
+def load_agents(agents_dir: Path, *, strict: bool = False) -> list[AgentDef]:
+    """Load all agent definitions from a directory, sorted by name.
+
+    By default, files that fail to parse are skipped with a warning so that
+    one malformed definition does not block the rest.  Pass ``strict=True`` to
+    re-raise the first parse error instead.
+    """
     if not agents_dir.is_dir():
         raise LoadError(f"Agents directory not found: {agents_dir}")
 
     agents = []
     for md_path in sorted(agents_dir.glob("*.md")):
         logger.debug(f"Loading agent from {md_path.name}")
-        agents.append(parse_agent_file(md_path))
+        try:
+            agents.append(parse_agent_file(md_path))
+        except LoadError as exc:
+            if strict:
+                raise
+            logger.warning(f"Skipping {md_path.name}: {exc}")
     logger.debug(f"Loaded {len(agents)} agent(s) from {agents_dir}")
     return agents
 
