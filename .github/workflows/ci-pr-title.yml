@@ -1,0 +1,30 @@
+name: "CI - PR Title Check"
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  check-pr-title:
+    name: PR title convention
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = context.payload.pull_request.title;
+            // Pattern: <emoji> <type>: <subject> or <emoji> <type>(<scope>): <subject>
+            const pattern = /^[\p{Emoji_Presentation}\p{Extended_Pictographic}]\s+(feat|fix|refactor|docs|test|chore)(\([^)]+\))?:\s+.+$/u;
+            if (!pattern.test(title)) {
+              core.setFailed(
+                `PR title does not match convention.\n` +
+                `Expected: <emoji> <type>(<scope>): <subject>\n` +
+                `Example:  ✨ feat(adapter): add Cursor adapter support\n` +
+                `Allowed types: feat, fix, refactor, docs, test, chore\n` +
+                `Got: ${title}`
+              );
+            }
