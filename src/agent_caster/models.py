@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 from pydantic import BaseModel
 
@@ -54,3 +55,13 @@ class OutputFile(BaseModel, frozen=True):
 
     path: str  # relative to output_dir
     content: str
+
+
+class BaseAdapter(BaseModel):
+    """Base class for platform adapters."""
+
+    name: ClassVar[str]
+    default_model_map: ClassVar[dict[str, str]] = {}
+
+    @abstractmethod
+    def cast(self, agents: list[AgentDef], config: TargetConfig) -> list[OutputFile]: ...

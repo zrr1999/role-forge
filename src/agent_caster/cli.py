@@ -32,6 +32,52 @@ def main(
     """agent-caster: AI coding agent definition manager."""
 
 
+def _resolve_target_config(
+    target_name: str,
+    adapter,
+    project: Path,
+    interactive: bool = True,
+):
+    """Build TargetConfig: refit.toml > adapter defaults > interactive prompt."""
+    from agent_caster.config import load_config
+    from agent_caster.models import TargetConfig
+
+    # 1. Try refit.toml
+    refit_path = project / "refit.toml"
+    if refit_path.is_file():
+        project_config = load_config(refit_path)
+        if target_name in project_config.targets:
+            cfg = project_config.targets[target_name]
+            if cfg.model_map:
+                return cfg
+
+    # 2. Adapter has defaults → use them
+    if adapter.default_model_map:
+        return TargetConfig(
+            name=target_name,
+            enabled=True,
+            output_dir=".",
+            model_map=adapter.default_model_map,
+        )
+
+    # 3. No defaults, no config → prompt user
+    if interactive:
+        logger.info(f"\nNo model config found for '{target_name}'. Please specify:")
+        reasoning = typer.prompt("  reasoning model")
+        coding = typer.prompt("  coding model")
+        return TargetConfig(
+            name=target_name,
+            enabled=True,
+            output_dir=".",
+            model_map={"reasoning": reasoning, "coding": coding},
+        )
+
+    logger.error(
+        f"No model_map for '{target_name}'. Add [targets.{target_name}.model_map] to refit.toml."
+    )
+    raise typer.Exit(1)
+
+
 @app.command()
 def add(
     source: Annotated[str, typer.Argument(help="Source: org/repo[@ref] or local path")],
@@ -49,7 +95,6 @@ def add(
     """Add agent definitions from a source."""
     from agent_caster.adapters import get_adapter
     from agent_caster.loader import load_agents
-    from agent_caster.models import TargetConfig
     from agent_caster.platform import detect_platforms
     from agent_caster.registry import fetch_source, find_agents_dir, parse_source
 
@@ -113,12 +158,7 @@ def add(
             logger.error(f"Unknown target: {target_name}")
             continue
 
-        config = TargetConfig(
-            name=target_name,
-            enabled=True,
-            output_dir=".",
-            model_map=adapter.default_model_map,
-        )
+        config = _resolve_target_config(target_name, adapter, project)
 
         outputs = adapter.cast(installed_agents, config)
         for out in outputs:
@@ -168,7 +208,6 @@ def cast(
     """Cast installed agent definitions to platform-specific configs."""
     from agent_caster.adapters import get_adapter
     from agent_caster.loader import load_agents
-    from agent_caster.models import TargetConfig
     from agent_caster.platform import detect_platforms
 
     project = Path(project_dir).resolve() if project_dir else Path.cwd()
@@ -192,12 +231,7 @@ def cast(
             logger.error(str(e))
             continue
 
-        config = TargetConfig(
-            name=target_name,
-            enabled=True,
-            output_dir=".",
-            model_map=adapter.default_model_map,
-        )
+        config = _resolve_target_config(target_name, adapter, project)
 
         outputs = adapter.cast(agents, config)
         for out in outputs:

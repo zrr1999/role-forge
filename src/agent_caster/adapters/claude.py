@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from agent_caster.groups import BASH_POLICIES, TOOL_GROUPS
-from agent_caster.models import AgentDef, ModelConfig, OutputFile, TargetConfig
+from agent_caster.models import AgentDef, BaseAdapter, ModelConfig, OutputFile, TargetConfig
 
 # Semantic tool id -> Claude Code tool name
 _TOOL_NAME_MAP: dict[str, str] = {
@@ -18,15 +20,13 @@ _TOOL_NAME_MAP: dict[str, str] = {
     "task": "Task",
 }
 
-DEFAULT_MODEL_MAP: dict[str, str] = {
-    "reasoning": "claude-opus-4-6",
-    "coding": "claude-sonnet-4",
-}
 
-
-class ClaudeAdapter:
-    name: str = "claude"
-    default_model_map: dict[str, str] = DEFAULT_MODEL_MAP
+class ClaudeAdapter(BaseAdapter):
+    name = "claude"
+    default_model_map: ClassVar[dict[str, str]] = {
+        "reasoning": "claude-opus-4-6",
+        "coding": "claude-sonnet-4",
+    }
 
     def cast(
         self,

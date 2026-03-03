@@ -6,17 +6,11 @@ Migrated from precision-alignment-agent/adapters/opencode/generate.py.
 from __future__ import annotations
 
 from agent_caster.groups import BASH_POLICIES, TOOL_GROUPS
-from agent_caster.models import AgentDef, ModelConfig, OutputFile, TargetConfig
-
-DEFAULT_MODEL_MAP: dict[str, str] = {
-    "reasoning": "anthropic:claude-opus-4-6",
-    "coding": "anthropic:claude-sonnet-4",
-}
+from agent_caster.models import AgentDef, BaseAdapter, ModelConfig, OutputFile, TargetConfig
 
 
-class OpenCodeAdapter:
-    name: str = "opencode"
-    default_model_map: dict[str, str] = DEFAULT_MODEL_MAP
+class OpenCodeAdapter(BaseAdapter):
+    name = "opencode"
 
     def cast(
         self,
