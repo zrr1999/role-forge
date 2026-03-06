@@ -107,7 +107,7 @@ just install   # 安装依赖
 just ci        # 完整 CI 流程（format + lint + check + test）
 ```
 
-详见 [AGENTS.md](AGENTS.md) 和 [docs/conventions.md](docs/conventions.md)。
+详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## License
 
