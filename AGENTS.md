@@ -1,6 +1,6 @@
 # agent-caster 开发指南
 
-提交和 PR 规范见 [docs/conventions.md](docs/conventions.md)。
+提交和 PR 规范见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 提交前
 
