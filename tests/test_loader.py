@@ -89,3 +89,15 @@ def test_load_agents_strict_raises_on_bad_file(tmp_path: Path) -> None:
 
     with pytest.raises(LoadError):
         load_agents(agents_dir, strict=True)
+
+
+def test_custom_tier_accepted(tmp_path: Path) -> None:
+    """Any custom tier string should be accepted without validation errors."""
+    agents_dir = tmp_path / "roles"
+    agents_dir.mkdir()
+    (agents_dir / "agent.md").write_text(
+        "---\nname: deep-worker\ndescription: test\nmodel:\n  tier: deep\n---\n# Deep Worker\n"
+    )
+    agents = load_agents(agents_dir)
+    assert len(agents) == 1
+    assert agents[0].model.tier == "deep"
