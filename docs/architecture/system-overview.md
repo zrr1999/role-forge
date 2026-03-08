@@ -16,7 +16,7 @@ The product revolves around one source of truth:
 
 - canonical role files stored as Markdown with YAML frontmatter
 - logical model tiers such as `reasoning` and `coding`
-- abstract capability groups such as `read`, `write`, and `web-read`
+- abstract capability groups such as `read`, `write`, and `web-access`
 - optional hierarchy and delegation metadata
 
 Platform adapters interpret that source into target-specific files without changing the canonical definitions themselves.

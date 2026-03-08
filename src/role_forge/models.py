@@ -38,7 +38,8 @@ class HierarchyConfig(BaseModel, frozen=True):
 class AgentDef(BaseModel, frozen=True):
     """Parsed canonical agent definition.
 
-    Capabilities are stored as raw data -- expansion is the adapter's job.
+    Capabilities are stored as raw data. Empty capability lists default to `basic`
+    during centralized expansion.
     """
 
     name: str

@@ -677,7 +677,7 @@ def test_add_with_auto_cast(tmp_path):
     roles.mkdir(parents=True)
     (roles / "explorer.md").write_text(
         "---\nname: explorer\ndescription: Explorer\nrole: subagent\n"
-        "model:\n  tier: reasoning\ncapabilities:\n  - read-code\n---\n# Explorer\n"
+        "model:\n  tier: reasoning\ncapabilities:\n  - read\n---\n# Explorer\n"
     )
 
     project = tmp_path / "project"
@@ -698,7 +698,7 @@ def test_add_with_explicit_target(tmp_path):
     roles.mkdir(parents=True)
     (roles / "explorer.md").write_text(
         "---\nname: explorer\ndescription: Explorer\nrole: subagent\n"
-        "model:\n  tier: reasoning\ncapabilities:\n  - read-code\n---\n# Explorer\n"
+        "model:\n  tier: reasoning\ncapabilities:\n  - read\n---\n# Explorer\n"
     )
 
     project = tmp_path / "project"
@@ -735,7 +735,7 @@ def test_cast_with_target(tmp_path):
     roles_dir.mkdir(parents=True)
     (roles_dir / "explorer.md").write_text(
         "---\nname: explorer\ndescription: Explorer\nrole: subagent\n"
-        "model:\n  tier: reasoning\ncapabilities:\n  - read-code\n---\n# Explorer\n"
+        "model:\n  tier: reasoning\ncapabilities:\n  - read\n---\n# Explorer\n"
     )
     result = runner.invoke(app, [
         "cast", "--target", "claude", "--project-dir", str(tmp_path),
@@ -1149,11 +1149,11 @@ def test_full_workflow_add_list_cast_remove(tmp_path):
     roles.mkdir(parents=True)
     (roles / "explorer.md").write_text(
         "---\nname: explorer\ndescription: Explorer\nrole: subagent\n"
-        "model:\n  tier: reasoning\ncapabilities:\n  - read-code\n---\n# Explorer\n"
+        "model:\n  tier: reasoning\ncapabilities:\n  - read\n---\n# Explorer\n"
     )
     (roles / "aligner.md").write_text(
         "---\nname: aligner\ndescription: Aligner\nrole: subagent\n"
-        "model:\n  tier: coding\ncapabilities:\n  - write-code\n---\n# Aligner\n"
+        "model:\n  tier: coding\ncapabilities:\n  - write\n---\n# Aligner\n"
     )
 
     project = tmp_path / "project"

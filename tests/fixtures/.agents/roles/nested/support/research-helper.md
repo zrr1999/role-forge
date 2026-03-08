@@ -9,7 +9,7 @@ model:
 
 capabilities:
   - read
-  - web-read
+  - web-access
 
 hierarchy:
   level: L3

@@ -27,7 +27,7 @@ role-forge list
 
 ## Capability model
 
-Canonical roles declare abstract capabilities such as `read`, `write`, `web-read`, `safe-bash`, and `delegate`. `role-forge` expands those once into a shared intermediate capability model, then each adapter renders the matching tools and permissions for its target. See `docs/reference/canonical-role-definition.md` for the full vocabulary, including `all`.
+Canonical roles declare abstract capabilities such as `basic`, `read`, `write`, `web-access`, `delegate`, `bash`, `safe-bash`, and `all`. `role-forge` expands those once into a shared intermediate capability model, then each adapter renders the matching tools and permissions for its target. If a role omits capabilities entirely, `basic` is applied by default.
 
 ## Documentation
 

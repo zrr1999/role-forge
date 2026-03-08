@@ -29,6 +29,9 @@ def expand_capabilities(
     capability_map: dict[str, dict[str, bool]],
 ) -> CapabilitySpec:
     """Expand raw capabilities into a canonical intermediate representation."""
+    if not capabilities:
+        capabilities = ["basic"]
+
     tool_ids: list[str] = []
     bash_patterns: list[str] = []
     delegates: list[str] = []

@@ -38,7 +38,6 @@ Status: Draft
 以下能力都属于“不是简单工具组”的类型：
 
 - `safe-bash`
-- `readonly-bash`
 - `bash: [...]`
 - `delegate: [...]`
 - `all`
@@ -50,9 +49,6 @@ Status: Draft
 后续如果要支持：
 
 - `basic`
-- `read-write`
-- `web`
-- `delegate-only`
 - 平台特有 capability alias
 
 现在的实现容易继续把逻辑堆进 adapter，增加分叉。
@@ -82,9 +78,9 @@ role 作者仍应能写：
 
 ```yaml
 capabilities:
-  - read
-  - write
+  - basic
   - safe-bash
+  - delegate
   - delegate:
       - nested/worker
 ```
@@ -117,26 +113,17 @@ CapabilitySpec(
 
 - `read` -> `read`, `glob`, `grep`
 - `write` -> `write`, `edit`
-- `write-report` -> `write`
-- `web-read` -> `webfetch`
 - `web-access` -> `webfetch`, `websearch`
+- `basic` -> `read`, `write`, `web-access`
+- `delegate` -> `task`
+- `bash` -> unrestricted bash
 - `safe-bash` -> `bash` + safe allowlist
-- `readonly-bash` -> `bash` + readonly allowlist
 - `all` -> 全部内置 tools，并在支持权限映射的平台上给予全部内置权限
 
 ### Structured entries
 
 - `bash: [...]` -> 追加 bash allowlist
 - `delegate: [...]` -> 声明可委派目标
-
-### Backward compatibility
-
-暂时保留：
-
-- `read-code`
-- `write-code`
-
-但文档继续引导使用 canonical names。
 
 ## Proposed Refactor Scope
 

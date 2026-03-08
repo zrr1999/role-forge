@@ -9,7 +9,7 @@ model:
 
 capabilities:
   - read
-  - write-report
+  - write
   - delegate:
       - nested/feature-lead
       - nested/support/research-helper

@@ -32,8 +32,8 @@ skills:
 
 capabilities:
   - read
-  - write-report
-  - web-read
+  - write
+  - web-access
   - bash:
       - "npx repomix@latest*"
 
@@ -89,18 +89,22 @@ Capabilities are expanded once into a shared, platform-agnostic model before any
 
 Preferred canonical names:
 
+- `basic`
 - `read`
 - `write`
-- `write-report`
-- `web-read`
 - `web-access`
+- `delegate`
 - `all`
+- `bash`
 - `safe-bash`
-- `readonly-bash`
 
-Legacy aliases such as `read-code` and `write-code` still load, but new definitions should use the canonical names.
+`basic` is the default when a role does not declare any capabilities. It expands to `read`, `write`, and `web-access`.
+
+`delegate` enables delegation tooling without adding any specific allowed targets. To actually delegate to children, pair it with a structured `delegate:` entry.
 
 `all` expands to every built-in capability the target adapter knows how to express. For adapters with permission maps, it also grants full access for those built-in permissions.
+
+`bash` enables unrestricted bash access. Use `safe-bash` when you want an explicit allow-list instead.
 
 Structured capability entries remain available for cases that need parameters:
 

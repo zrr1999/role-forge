@@ -51,7 +51,7 @@ AI coding agent 平台快速增长（Claude Code、Cursor、OpenCode、Codex、W
 | **Canonical definition** | 平台无关的 agent 定义文件（`.agents/roles/*.md`），是唯一的真实来源 |
 | **Adapter** | 渲染后端，将 canonical 定义转换为特定平台的配置格式 |
 | **Target** | 输出目标平台（opencode、cursor、claude 等） |
-| **Capability group** | 抽象能力组（如 `read-code`），由 adapter 展开为平台特定的工具标志 |
+| **Capability group** | 抽象能力组（如 `read`），由 adapter 展开为平台特定的工具标志 |
 | **Model tier** | 抽象模型层级（`reasoning` / `coding`），由 adapter 映射为具体模型 ID |
 | **Source** | 远程 agent 定义来源（GitHub 仓库） |
 
@@ -139,9 +139,9 @@ skills:
   - repomix-explorer
 
 capabilities:
-  - read-code
-  - write-report
-  - web-read
+  - read
+  - write
+  - web-access
   - bash:
       - "npx repomix@latest*"
       - "bunx repomix@latest*"
@@ -182,8 +182,8 @@ prompt_file: string         # 外部 prompt 文件路径（相对于当前文件
 
 # 能力声明
 capabilities:
-  - read-code               # 预定义能力组（string）
-  - write-code
+  - read               # 预定义能力组（string）
+  - write
   - web-access
   - bash:                   # 结构化能力：bash 命令白名单
       - "pattern*"
@@ -195,13 +195,13 @@ capabilities:
 
 | 能力组 | 语义 | 典型展开 |
 |--------|------|----------|
-| `read-code` | 读取代码/文件 | read, glob, grep |
-| `write-code` | 编写/修改代码 | write, edit |
-| `write-report` | 写入报告/文档 | write |
+| `read` | 读取代码/文件 | read, glob, grep |
+| `write` | 编写/修改代码 | write, edit |
+| `write` | 写入报告/文档 | write |
 | `web-access` | 完整 web 访问 | webfetch, websearch |
-| `web-read` | 只读 web 访问 | webfetch |
+| `web-access` | 只读 web 访问 | webfetch |
 
-> 注意：具体展开结果因平台而异。`read-code` 在 OpenCode 中展开为 `{read: true, glob: true, grep: true}`，在 Cursor 中可能映射为不同的工具名。
+> 注意：具体展开结果因平台而异。`read` 在 OpenCode 中展开为 `{read: true, glob: true, grep: true}`，在 Cursor 中可能映射为不同的工具名。
 
 ### 4.4 用户自定义能力组
 
@@ -370,7 +370,7 @@ Agent: explorer
   Role: subagent
   Tier: reasoning (temperature: 0.05)
   Skills: repomix-explorer
-  Capabilities: read-code, write-report, web-read, bash(2 patterns)
+  Capabilities: read, write, web-access, bash(2 patterns)
   Source: github:PFCCLab/precision-agents@main
 
   Compiled for opencode:
@@ -447,8 +447,8 @@ class Adapter(Protocol):
 - `.claude/agents/{name}.md` — subagent 定义
 
 映射：
-- `read-code` → Read, Glob, Grep tools
-- `write-code` → Write, Edit tools
+- `read` → Read, Glob, Grep tools
+- `write` → Write, Edit tools
 - `bash` → Bash tool with allowedCommands
 - `delegate` → Task tool with allowedAgents
 

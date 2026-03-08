@@ -8,14 +8,11 @@ from __future__ import annotations
 
 TOOL_GROUPS: dict[str, list[str]] = {
     # Primary groups
+    "basic": ["read", "glob", "grep", "write", "edit", "webfetch", "websearch"],
     "read": ["read", "glob", "grep"],
     "write": ["write", "edit"],
-    "write-report": ["write"],
-    "web-read": ["webfetch"],
     "web-access": ["webfetch", "websearch"],
-    # Backward-compat aliases
-    "read-code": ["read", "glob", "grep"],
-    "write-code": ["write", "edit"],
+    "delegate": ["task"],
 }
 
 ALL_TOOL_IDS: list[str] = [
@@ -33,7 +30,6 @@ ALL_TOOL_IDS: list[str] = [
 # -- Bash policies -------------------------------------------------------------
 # Each policy is a list of glob patterns for allowed bash commands.
 # Pattern convention: "cmd*" matches both bare command and command with arguments.
-# readonly-bash is a strict superset of safe-bash.
 
 SAFE_BASH_PATTERNS: list[str] = [
     # Output / text processing
@@ -66,35 +62,6 @@ SAFE_BASH_PATTERNS: list[str] = [
     "git remote*",
 ]
 
-READONLY_BASH_EXTRA: list[str] = [
-    # File reading
-    "cat*",
-    "less*",
-    # File/directory listing & search
-    "ls*",
-    "find*",
-    "tree*",
-    # Content search
-    "grep*",
-    "rg*",
-    "ag*",
-    # File metadata
-    "file*",
-    "stat*",
-    # Disk / system
-    "du*",
-    "df*",
-    "env",
-    "printenv*",
-    "ps*",
-    # Package managers (read-only)
-    "pip list*",
-    "pip show*",
-    "npm list*",
-    "cargo metadata*",
-]
-
 BASH_POLICIES: dict[str, list[str]] = {
     "safe-bash": SAFE_BASH_PATTERNS,
-    "readonly-bash": SAFE_BASH_PATTERNS + READONLY_BASH_EXTRA,
 }

@@ -29,7 +29,7 @@ def test_parse_explorer(fixtures_dir):
     assert agent.model.temperature == 0.05
     assert agent.canonical_id == "explorer"
     assert "repomix-explorer" in agent.skills
-    assert "read-code" in agent.capabilities
+    assert "read" in agent.capabilities
     assert agent.prompt_content.startswith("# Explorer")
 
 

@@ -18,7 +18,7 @@ def test_cast_aligner(snapshot):
         description="Precision Aligner. Makes targeted code changes.",
         role="subagent",
         model=ModelConfig(tier="coding", temperature=0.1),
-        capabilities=["read-code", "write-code"],
+        capabilities=["read", "write"],
         prompt_content="# Aligner",
     )
     adapter = CursorAdapter()
@@ -36,8 +36,8 @@ def test_cast_explorer(snapshot):
         model=ModelConfig(tier="reasoning", temperature=0.05),
         skills=["repomix-explorer"],
         capabilities=[
-            "read-code",
-            "web-read",
+            "read",
+            "web-access",
             {"bash": ["npx repomix@latest*"]},
         ],
         prompt_content="# Explorer\n\nRead-only code exploration agent.",
