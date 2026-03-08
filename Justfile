@@ -28,7 +28,11 @@ test:
 # Run tests with coverage
 cov:
     uv run python -m pytest --cov=role_forge --cov-report=term-missing
-    uv run coverage xml
+    uv run python -m coverage xml
+
+# Run CodSpeed benchmarks
+bench:
+    uv run --with pytest-codspeed python -m pytest tests/test_topology.py --codspeed
 
 # Run pre-commit on all files
 pre-commit:
