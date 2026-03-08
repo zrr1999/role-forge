@@ -79,6 +79,26 @@ def _resolve_target_config(
     raise typer.Exit(1)
 
 
+def _resolve_project(project_dir: str | None) -> Path:
+    return Path(project_dir).resolve() if project_dir else Path.cwd()
+
+
+def _resolve_roles_dir(project: Path) -> Path:
+    from role_forge.config import resolve_roles_dir
+
+    return resolve_roles_dir(project)
+
+
+def _load_installed_agents(project: Path):
+    from role_forge.loader import load_agents
+
+    roles_dir = _resolve_roles_dir(project)
+    if not roles_dir.is_dir():
+        logger.error("No roles found. Run 'role-forge add' first.")
+        raise typer.Exit(1)
+    return roles_dir, load_agents(roles_dir)
+
+
 def _render_agents_to_targets(project: Path, agents, target_names: list[str]) -> None:
     from role_forge.adapters import get_adapter
     from role_forge.topology import TopologyError
@@ -145,8 +165,10 @@ def add(
     """Add agent definitions from a source."""
     from role_forge.loader import load_agents
     from role_forge.platform import detect_platforms
-    from role_forge.registry import fetch_source, find_agents_dir, parse_source
+    from role_forge.registry import fetch_source, find_roles_dir, parse_source
     from role_forge.topology import TopologyError, validate_agents
+
+    del yes
 
     parsed = parse_source(source)
 
@@ -157,12 +179,12 @@ def add(
         raise typer.Exit(1) from e
 
     try:
-        agents_dir = find_agents_dir(repo_path)
+        roles_dir = find_roles_dir(repo_path)
     except FileNotFoundError as e:
         logger.error(str(e))
         raise typer.Exit(1) from e
 
-    agents = load_agents(agents_dir)
+    agents = load_agents(roles_dir)
     if not agents:
         logger.error("No agent definitions found in source.")
         raise typer.Exit(1)
@@ -180,8 +202,8 @@ def add(
     if global_install:
         install_dir = Path.home() / ".agents" / "roles"
     else:
-        project = Path(project_dir).resolve() if project_dir else Path.cwd()
-        install_dir = project / ".agents" / "roles"
+        project = _resolve_project(project_dir)
+        install_dir = _resolve_roles_dir(project)
 
     install_dir.mkdir(parents=True, exist_ok=True)
 
@@ -199,7 +221,7 @@ def add(
     if global_install and not target:
         return
 
-    project = Path(project_dir).resolve() if project_dir else Path.cwd()
+    project = _resolve_project(project_dir)
 
     cast_targets = list(target) if target else detect_platforms(project)
 
@@ -218,16 +240,8 @@ def list_agents(
     ] = None,
 ) -> None:
     """List all installed agent definitions."""
-    from role_forge.loader import load_agents
-
-    project = Path(project_dir).resolve() if project_dir else Path.cwd()
-    agents_dir = project / ".agents" / "roles"
-
-    if not agents_dir.is_dir():
-        logger.error("No agents found. Run 'role-forge add' first.")
-        raise typer.Exit(1)
-
-    agents = load_agents(agents_dir)
+    project = _resolve_project(project_dir)
+    _, agents = _load_installed_agents(project)
 
     logger.info(f"{'AGENT':<25} {'ID':<25} {'ROLE':<10} {'TIER':<12} {'TEMP':<6}")
     logger.info("-" * 82)
@@ -238,7 +252,7 @@ def list_agents(
             f"{agent.model.tier:<12} {temp:<6}"
         )
 
-    logger.info(f"\n{len(agents)} agents found")
+    logger.info(f"\n{len(agents)} roles found")
 
 
 def _render_command(
@@ -250,18 +264,11 @@ def _render_command(
     ] = None,
 ) -> None:
     """Render installed role definitions to platform-specific configs."""
-    from role_forge.loader import load_agents
     from role_forge.platform import detect_platforms
     from role_forge.topology import TopologyError, validate_agents
 
-    project = Path(project_dir).resolve() if project_dir else Path.cwd()
-    agents_dir = project / ".agents" / "roles"
-
-    if not agents_dir.is_dir():
-        logger.error("No agents found. Run 'role-forge add' first.")
-        raise typer.Exit(1)
-
-    agents = load_agents(agents_dir)
+    project = _resolve_project(project_dir)
+    _, agents = _load_installed_agents(project)
     try:
         validate_agents(agents)
     except TopologyError as e:
@@ -307,22 +314,15 @@ def cast(
 @app.command()
 def remove(
     agent_name: Annotated[str, typer.Argument(help="Agent canonical id or unique name to remove")],
-    yes: Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation")] = False,
     project_dir: Annotated[
         str | None, typer.Option("--project-dir", help="Project root directory")
     ] = None,
 ) -> None:
     """Remove an installed agent definition."""
-    from role_forge.loader import load_agents
-
-    project = Path(project_dir).resolve() if project_dir else Path.cwd()
-    agents_dir = project / ".agents" / "roles"
-    if not agents_dir.is_dir():
-        logger.error("No agents found. Run 'role-forge add' first.")
-        raise typer.Exit(1)
-
-    agent = _resolve_remove_target(load_agents(agents_dir), agent_name)
-    agent_file = agents_dir / agent.install_relative_path()
+    project = _resolve_project(project_dir)
+    roles_dir, agents = _load_installed_agents(project)
+    agent = _resolve_remove_target(agents, agent_name)
+    agent_file = roles_dir / agent.install_relative_path()
     agent_file.unlink()
     logger.info(f"Removed {agent.canonical_id}")
     logger.info(

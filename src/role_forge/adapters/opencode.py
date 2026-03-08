@@ -5,34 +5,16 @@ Migrated from precision-alignment-agent/adapters/opencode/generate.py.
 
 from __future__ import annotations
 
+from role_forge.adapters.base import BaseAdapter
 from role_forge.groups import BASH_POLICIES, TOOL_GROUPS
-from role_forge.models import AgentDef, BaseAdapter, ModelConfig, OutputFile, TargetConfig
-from role_forge.topology import build_output_path, validate_agents, validate_output_layout
+from role_forge.models import AgentDef, TargetConfig
 
 
 class OpenCodeAdapter(BaseAdapter):
     name = "opencode"
-
-    def cast(
-        self,
-        agents: list[AgentDef],
-        config: TargetConfig,
-    ) -> list[OutputFile]:
-        delegation_graph = validate_agents(agents)
-        validate_output_layout(agents, config)
-
-        outputs = []
-        for agent in agents:
-            delegates = [
-                target.output_id(config.output_layout)
-                for target in delegation_graph.get(agent.canonical_id, [])
-            ]
-            content = self._generate_agent_md(agent, config, delegates)
-            path = build_output_path(
-                agent, base_dir=".opencode/agents", suffix=".md", config=config
-            )
-            outputs.append(OutputFile(path=path, content=content))
-        return outputs
+    base_dir = ".opencode/agents"
+    file_suffix = ".md"
+    prompt_separator = "\n\n"
 
     def _expand_capabilities(
         self,
@@ -84,14 +66,11 @@ class OpenCodeAdapter(BaseAdapter):
 
         return {k: v for k, v in tools.items() if v}, bash_allowed, delegates
 
-    def _resolve_model(self, model: ModelConfig, model_map: dict[str, str]) -> str:
-        default = model_map.get("reasoning", "")
-        return model_map.get(model.tier, default)
-
-    def _resolve_temperature(self, model: ModelConfig, role: str) -> float:
+    def _resolve_temperature(self, agent: AgentDef) -> float:
+        model = agent.model
         if model.temperature is not None:
             return model.temperature
-        return 0.2 if role == "primary" else 0.1
+        return 0.2 if agent.role == "primary" else 0.1
 
     def _build_permissions(
         self,
@@ -161,8 +140,11 @@ class OpenCodeAdapter(BaseAdapter):
         lines.append("---")
         return "\n".join(lines)
 
-    def _generate_agent_md(
-        self, agent: AgentDef, config: TargetConfig, delegates: list[str]
+    def render_agent(
+        self,
+        agent: AgentDef,
+        config: TargetConfig,
+        delegates: list[str],
     ) -> str:
         tools, bash_allowed, _ = self._expand_capabilities(
             agent.capabilities, config.capability_map
@@ -171,12 +153,11 @@ class OpenCodeAdapter(BaseAdapter):
         description = agent.description
         mode = agent.role
         model = self._resolve_model(agent.model, config.model_map)
-        temperature = self._resolve_temperature(agent.model, agent.role)
+        temperature = self._resolve_temperature(agent)
         skills = [s for s in agent.skills if s]
         permission = self._build_permissions(bash_allowed, delegates, tools, agent.role)
 
         fm = self._serialize_frontmatter(
             description, mode, model, temperature, skills, tools, permission
         )
-        prompt = agent.prompt_content
-        return f"{fm}\n\n{prompt}" if prompt else fm
+        return self._compose_document(fm, agent.prompt_content)

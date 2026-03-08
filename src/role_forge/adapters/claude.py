@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import ClassVar
 
+from role_forge.adapters.base import BaseAdapter
 from role_forge.groups import BASH_POLICIES, TOOL_GROUPS
-from role_forge.models import AgentDef, BaseAdapter, ModelConfig, OutputFile, TargetConfig
-from role_forge.topology import build_output_path, validate_agents, validate_output_layout
+from role_forge.models import AgentDef, TargetConfig
 
 # Semantic tool id -> Claude Code tool name
 _TOOL_NAME_MAP: dict[str, str] = {
@@ -24,29 +24,12 @@ _TOOL_NAME_MAP: dict[str, str] = {
 
 class ClaudeAdapter(BaseAdapter):
     name = "claude"
+    base_dir = ".claude/agents"
+    file_suffix = ".md"
     default_model_map: ClassVar[dict[str, str]] = {
         "reasoning": "claude-opus-4-6",
         "coding": "claude-sonnet-4",
     }
-
-    def cast(
-        self,
-        agents: list[AgentDef],
-        config: TargetConfig,
-    ) -> list[OutputFile]:
-        delegation_graph = validate_agents(agents)
-        validate_output_layout(agents, config)
-
-        outputs = []
-        for agent in agents:
-            delegates = [
-                target.output_id(config.output_layout)
-                for target in delegation_graph.get(agent.canonical_id, [])
-            ]
-            content = self._generate_agent_md(agent, config, delegates)
-            path = build_output_path(agent, base_dir=".claude/agents", suffix=".md", config=config)
-            outputs.append(OutputFile(path=path, content=content))
-        return outputs
 
     def _expand_capabilities(
         self,
@@ -99,10 +82,6 @@ class ClaudeAdapter(BaseAdapter):
 
         return sorted(tools), bash_patterns, delegates
 
-    def _resolve_model(self, model: ModelConfig, model_map: dict[str, str]) -> str:
-        default = model_map.get("reasoning", "")
-        return model_map.get(model.tier, default)
-
     def _build_allowed_tools(
         self,
         tools: list[str],
@@ -144,8 +123,11 @@ class ClaudeAdapter(BaseAdapter):
         lines.append("---")
         return "\n".join(lines)
 
-    def _generate_agent_md(
-        self, agent: AgentDef, config: TargetConfig, delegates: list[str]
+    def render_agent(
+        self,
+        agent: AgentDef,
+        config: TargetConfig,
+        delegates: list[str],
     ) -> str:
         tools, bash_patterns, _ = self._expand_capabilities(
             agent.capabilities, config.capability_map
@@ -157,5 +139,4 @@ class ClaudeAdapter(BaseAdapter):
         allowed_tools = self._build_allowed_tools(tools, bash_patterns, delegates)
 
         fm = self._serialize_frontmatter(name, description, model, allowed_tools)
-        prompt = agent.prompt_content
-        return f"{fm}\n{prompt}" if prompt else fm
+        return self._compose_document(fm, agent.prompt_content)

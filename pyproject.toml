@@ -31,6 +31,7 @@ Repository = "https://github.com/zrr1999/role-forge"
 [dependency-groups]
 dev = [
   { include-group = "test" },
+  "zensical>=0.0.24",
 ]
 test = [
   "pytest>=8.0",

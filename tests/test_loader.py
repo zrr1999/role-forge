@@ -69,27 +69,27 @@ def test_load_agents_missing_dir():
 
 def test_load_agents_skips_bad_file(tmp_path: Path) -> None:
     """One malformed file should be skipped while valid agents still load."""
-    agents_dir = tmp_path / "roles"
-    agents_dir.mkdir()
+    roles_dir = tmp_path / "roles"
+    roles_dir.mkdir()
 
     # Write a valid agent
-    (agents_dir / "good.md").write_text("---\nname: good-agent\ndescription: ok\n---\n# Good")
+    (roles_dir / "good.md").write_text("---\nname: good-agent\ndescription: ok\n---\n# Good")
     # Write a file without frontmatter — this will raise LoadError
-    (agents_dir / "bad.md").write_text("no frontmatter here\n")
+    (roles_dir / "bad.md").write_text("no frontmatter here\n")
 
-    agents = load_agents(agents_dir)
+    agents = load_agents(roles_dir)
     assert len(agents) == 1
     assert agents[0].name == "good-agent"
 
 
 def test_load_agents_strict_raises_on_bad_file(tmp_path: Path) -> None:
     """strict=True should propagate the LoadError from the first bad file."""
-    agents_dir = tmp_path / "roles"
-    agents_dir.mkdir()
-    (agents_dir / "bad.md").write_text("no frontmatter here\n")
+    roles_dir = tmp_path / "roles"
+    roles_dir.mkdir()
+    (roles_dir / "bad.md").write_text("no frontmatter here\n")
 
     with pytest.raises(LoadError):
-        load_agents(agents_dir, strict=True)
+        load_agents(roles_dir, strict=True)
 
 
 def test_load_agents_recursive(tmp_path: Path) -> None:
@@ -144,12 +144,12 @@ def test_load_agents_recursive_skips_bad_nested(tmp_path: Path) -> None:
 
 def test_custom_tier_accepted(tmp_path: Path) -> None:
     """Any custom tier string should be accepted without validation errors."""
-    agents_dir = tmp_path / "roles"
-    agents_dir.mkdir()
-    (agents_dir / "agent.md").write_text(
+    roles_dir = tmp_path / "roles"
+    roles_dir.mkdir()
+    (roles_dir / "agent.md").write_text(
         "---\nname: deep-worker\ndescription: test\nmodel:\n  tier: deep\n---\n# Deep Worker\n"
     )
-    agents = load_agents(agents_dir)
+    agents = load_agents(roles_dir)
     assert len(agents) == 1
     assert agents[0].model.tier == "deep"
 
@@ -173,7 +173,7 @@ def test_parse_hierarchy_metadata(tmp_path: Path) -> None:
         "# Lead\n"
     )
 
-    agent = parse_agent_file(agent_file, agents_dir=roles_dir)
+    agent = parse_agent_file(agent_file, roles_dir=roles_dir)
     assert agent.canonical_id == "l2/lead"
     assert agent.relative_path == "l2/lead.md"
     assert agent.hierarchy.level == "L2"

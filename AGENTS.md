@@ -26,7 +26,7 @@ just pre-commit    # 运行 pre-commit 钩子
 ```
 src/role_forge/
 ├── cli.py          # CLI 入口（add / update / render / list / remove）
-├── config.py       # roles.toml / refit.toml 解析
+├── config.py       # roles.toml 解析
 ├── loader.py       # Role 定义加载（YAML frontmatter + Markdown）
 ├── models.py       # Pydantic 数据模型
 ├── groups.py       # Capability group 和 bash policy 定义

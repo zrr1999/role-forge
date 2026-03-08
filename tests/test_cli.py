@@ -61,7 +61,6 @@ def test_add_from_local(tmp_path):
         [
             "add",
             str(source),
-            "--yes",
             "--project-dir",
             str(project),
         ],
@@ -89,7 +88,6 @@ def test_add_with_auto_cast(tmp_path):
         [
             "add",
             str(source),
-            "--yes",
             "--project-dir",
             str(project),
         ],
@@ -116,7 +114,6 @@ def test_add_with_explicit_target(tmp_path):
         [
             "add",
             str(source),
-            "--yes",
             "--target",
             "claude",
             "--project-dir",
@@ -147,7 +144,6 @@ def test_add_preserves_nested_role_paths_and_cast_output(tmp_path):
         [
             "add",
             str(source),
-            "--yes",
             "--target",
             "claude",
             "--project-dir",
@@ -165,9 +161,9 @@ def test_add_preserves_nested_role_paths_and_cast_output(tmp_path):
 
 
 def test_list_agents(tmp_path):
-    agents_dir = tmp_path / ".agents" / "roles"
-    agents_dir.mkdir(parents=True)
-    (agents_dir / "explorer.md").write_text(
+    roles_dir = tmp_path / ".agents" / "roles"
+    roles_dir.mkdir(parents=True)
+    (roles_dir / "explorer.md").write_text(
         "---\nname: explorer\ndescription: Explorer\nrole: subagent\n"
         "model:\n  tier: reasoning\n---\n# Explorer\n"
     )
@@ -186,9 +182,9 @@ def test_list_no_agents(tmp_path):
 
 
 def test_cast_with_target(tmp_path):
-    agents_dir = tmp_path / ".agents" / "roles"
-    agents_dir.mkdir(parents=True)
-    (agents_dir / "explorer.md").write_text(
+    roles_dir = tmp_path / ".agents" / "roles"
+    roles_dir.mkdir(parents=True)
+    (roles_dir / "explorer.md").write_text(
         "---\nname: explorer\ndescription: Explorer\nrole: subagent\n"
         "model:\n  tier: reasoning\ncapabilities:\n  - read-code\n---\n# Explorer\n"
     )
@@ -207,9 +203,9 @@ def test_cast_with_target(tmp_path):
 
 
 def test_render_alias_with_target(tmp_path):
-    agents_dir = tmp_path / ".agents" / "roles"
-    agents_dir.mkdir(parents=True)
-    (agents_dir / "explorer.md").write_text(
+    roles_dir = tmp_path / ".agents" / "roles"
+    roles_dir.mkdir(parents=True)
+    (roles_dir / "explorer.md").write_text(
         "---\nname: explorer\ndescription: Explorer\nrole: subagent\n"
         "model:\n  tier: reasoning\ncapabilities:\n  - read-code\n---\n# Explorer\n"
     )
@@ -245,40 +241,38 @@ def test_cast_no_agents(tmp_path):
 
 
 def test_remove_agent(tmp_path):
-    agents_dir = tmp_path / ".agents" / "roles"
-    agents_dir.mkdir(parents=True)
-    (agents_dir / "explorer.md").write_text("---\nname: explorer\n---\n# E")
+    roles_dir = tmp_path / ".agents" / "roles"
+    roles_dir.mkdir(parents=True)
+    (roles_dir / "explorer.md").write_text("---\nname: explorer\n---\n# E")
     result = runner.invoke(
         app,
         [
             "remove",
             "explorer",
-            "--yes",
             "--project-dir",
             str(tmp_path),
         ],
     )
     assert result.exit_code == 0
-    assert not (agents_dir / "explorer.md").exists()
+    assert not (roles_dir / "explorer.md").exists()
 
 
 def test_remove_nested_agent_by_canonical_id(tmp_path):
-    agents_dir = tmp_path / ".agents" / "roles" / "l2"
-    agents_dir.mkdir(parents=True)
-    (agents_dir / "worker.md").write_text("---\nname: worker\n---\n# E")
+    roles_dir = tmp_path / ".agents" / "roles" / "l2"
+    roles_dir.mkdir(parents=True)
+    (roles_dir / "worker.md").write_text("---\nname: worker\n---\n# E")
 
     result = runner.invoke(
         app,
         [
             "remove",
             "l2/worker",
-            "--yes",
             "--project-dir",
             str(tmp_path),
         ],
     )
     assert result.exit_code == 0
-    assert not (agents_dir / "worker.md").exists()
+    assert not (roles_dir / "worker.md").exists()
 
 
 def test_remove_ambiguous_name_requires_canonical_id(tmp_path):
@@ -303,8 +297,8 @@ def test_remove_ambiguous_name_requires_canonical_id(tmp_path):
 
 
 def test_remove_nonexistent(tmp_path):
-    agents_dir = tmp_path / ".agents" / "roles"
-    agents_dir.mkdir(parents=True)
+    roles_dir = tmp_path / ".agents" / "roles"
+    roles_dir.mkdir(parents=True)
     result = runner.invoke(
         app,
         [
@@ -356,48 +350,6 @@ def test_add_uses_roles_toml_config(tmp_path):
         [
             "add",
             str(source),
-            "--yes",
-            "--target",
-            "claude",
-            "--project-dir",
-            str(project),
-        ],
-    )
-    assert result.exit_code == 0, result.output
-    agent_file = project / ".claude" / "agents" / "explorer.md"
-    assert agent_file.is_file()
-    content = agent_file.read_text()
-    assert "my-custom-reasoning" in content
-
-
-def test_add_uses_refit_toml_config(tmp_path):
-    """add should use model_map from refit.toml (legacy name) when roles.toml absent."""
-    source = tmp_path / "source"
-    roles = source / "roles"
-    roles.mkdir(parents=True)
-    (roles / "explorer.md").write_text(
-        "---\nname: explorer\ndescription: Explorer\nrole: subagent\n"
-        "model:\n  tier: reasoning\ncapabilities:\n  - read-code\n---\n# Explorer\n"
-    )
-
-    project = tmp_path / "project"
-    project.mkdir()
-
-    # Write refit.toml (legacy name) with custom model_map for claude target
-    (project / "refit.toml").write_text(
-        "[targets.claude]\n"
-        "enabled = true\n"
-        "[targets.claude.model_map]\n"
-        'reasoning = "my-custom-reasoning"\n'
-        'coding = "my-custom-coding"\n'
-    )
-
-    result = runner.invoke(
-        app,
-        [
-            "add",
-            str(source),
-            "--yes",
             "--target",
             "claude",
             "--project-dir",
@@ -413,9 +365,9 @@ def test_add_uses_refit_toml_config(tmp_path):
 
 def test_cast_uses_roles_toml_config(tmp_path):
     """cast should use model_map from roles.toml (canonical name) when present."""
-    agents_dir = tmp_path / ".agents" / "roles"
-    agents_dir.mkdir(parents=True)
-    (agents_dir / "explorer.md").write_text(
+    roles_dir = tmp_path / ".agents" / "roles"
+    roles_dir.mkdir(parents=True)
+    (roles_dir / "explorer.md").write_text(
         "---\nname: explorer\ndescription: Explorer\nrole: subagent\n"
         "model:\n  tier: coding\ncapabilities:\n  - read-code\n---\n# Explorer\n"
     )
@@ -446,49 +398,14 @@ def test_cast_uses_roles_toml_config(tmp_path):
     assert "toml-coding" in content
 
 
-def test_cast_uses_refit_toml_config(tmp_path):
-    """cast should use model_map from refit.toml (legacy name) when roles.toml absent."""
-    agents_dir = tmp_path / ".agents" / "roles"
-    agents_dir.mkdir(parents=True)
-    (agents_dir / "explorer.md").write_text(
-        "---\nname: explorer\ndescription: Explorer\nrole: subagent\n"
-        "model:\n  tier: coding\ncapabilities:\n  - read-code\n---\n# Explorer\n"
-    )
-
-    # Write refit.toml with custom model_map for claude target
-    (tmp_path / "refit.toml").write_text(
-        "[targets.claude]\n"
-        "enabled = true\n"
-        "[targets.claude.model_map]\n"
-        'reasoning = "toml-reasoning"\n'
-        'coding = "toml-coding"\n'
-    )
-
-    result = runner.invoke(
-        app,
-        [
-            "cast",
-            "--target",
-            "claude",
-            "--project-dir",
-            str(tmp_path),
-        ],
-    )
-    assert result.exit_code == 0, result.output
-    agent_file = tmp_path / ".claude" / "agents" / "explorer.md"
-    assert agent_file.is_file()
-    content = agent_file.read_text()
-    assert "toml-coding" in content
-
-
 def test_cast_namespace_layout_avoids_nested_name_collisions(tmp_path):
-    agents_dir = tmp_path / ".agents" / "roles"
-    (agents_dir / "l2").mkdir(parents=True)
-    (agents_dir / "l3").mkdir(parents=True)
-    (agents_dir / "l2" / "worker.md").write_text(
+    roles_dir = tmp_path / ".agents" / "roles"
+    (roles_dir / "l2").mkdir(parents=True)
+    (roles_dir / "l3").mkdir(parents=True)
+    (roles_dir / "l2" / "worker.md").write_text(
         "---\nname: worker\ndescription: L2 worker\n---\n# L2 Worker\n"
     )
-    (agents_dir / "l3" / "worker.md").write_text(
+    (roles_dir / "l3" / "worker.md").write_text(
         "---\nname: worker\ndescription: L3 worker\n---\n# L3 Worker\n"
     )
     (tmp_path / "roles.toml").write_text(
@@ -509,11 +426,11 @@ def test_cast_namespace_layout_avoids_nested_name_collisions(tmp_path):
 
 
 def test_cast_flatten_layout_rejects_nested_name_collisions(tmp_path):
-    agents_dir = tmp_path / ".agents" / "roles"
-    (agents_dir / "l2").mkdir(parents=True)
-    (agents_dir / "l3").mkdir(parents=True)
-    (agents_dir / "l2" / "worker.md").write_text("---\nname: worker\n---\n# L2 Worker\n")
-    (agents_dir / "l3" / "worker.md").write_text("---\nname: worker\n---\n# L3 Worker\n")
+    roles_dir = tmp_path / ".agents" / "roles"
+    (roles_dir / "l2").mkdir(parents=True)
+    (roles_dir / "l3").mkdir(parents=True)
+    (roles_dir / "l2" / "worker.md").write_text("---\nname: worker\n---\n# L2 Worker\n")
+    (roles_dir / "l3" / "worker.md").write_text("---\nname: worker\n---\n# L3 Worker\n")
     (tmp_path / "roles.toml").write_text(
         "[targets.claude]\n"
         'output_layout = "flatten"\n'
@@ -549,7 +466,6 @@ def test_add_opencode_prompts_for_model(tmp_path):
         [
             "add",
             str(source),
-            "--yes",
             "--target",
             "opencode",
             "--project-dir",
@@ -587,7 +503,6 @@ def test_full_workflow_add_list_cast_remove(tmp_path):
         [
             "add",
             str(source),
-            "--yes",
             "--target",
             "claude",
             "--project-dir",
@@ -604,7 +519,7 @@ def test_full_workflow_add_list_cast_remove(tmp_path):
     assert result.exit_code == 0
     assert "explorer" in result.output
     assert "aligner" in result.output
-    assert "2 agents found" in result.output
+    assert "2 roles found" in result.output
 
     # cast
     result = runner.invoke(
@@ -625,7 +540,6 @@ def test_full_workflow_add_list_cast_remove(tmp_path):
         [
             "remove",
             "explorer",
-            "--yes",
             "--project-dir",
             str(project),
         ],
@@ -636,4 +550,4 @@ def test_full_workflow_add_list_cast_remove(tmp_path):
     # list again
     result = runner.invoke(app, ["list", "--project-dir", str(project)])
     assert result.exit_code == 0
-    assert "1 agents found" in result.output
+    assert "1 roles found" in result.output

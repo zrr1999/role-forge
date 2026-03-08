@@ -8,14 +8,19 @@ from pathlib import Path
 from role_forge.log import logger
 from role_forge.models import ProjectConfig, TargetConfig
 
-#: Canonical config filename (since v0.2).
 CONFIG_FILENAME = "roles.toml"
-#: Legacy filename — still supported but triggers a deprecation warning.
-LEGACY_CONFIG_FILENAME = "refit.toml"
 
 
 class ConfigError(Exception):
     """Raised when roles.toml is invalid or missing."""
+
+
+def resolve_roles_dir(project: Path) -> Path:
+    """Return the canonical roles directory for a project."""
+    config_path = find_config(project)
+    if config_path is None:
+        return project / ".agents" / "roles"
+    return project / load_config(config_path).roles_dir
 
 
 def find_config(project: Path) -> Path | None:
@@ -27,15 +32,6 @@ def find_config(project: Path) -> Path | None:
     canonical = project / CONFIG_FILENAME
     if canonical.is_file():
         return canonical
-
-    legacy = project / LEGACY_CONFIG_FILENAME
-    if legacy.is_file():
-        logger.warning(
-            f"'{LEGACY_CONFIG_FILENAME}' is deprecated — please rename it to '{CONFIG_FILENAME}'. "
-            "Support for the old name will be removed in a future release."
-        )
-        return legacy
-
     return None
 
 
@@ -46,7 +42,7 @@ def load_config(config_path: Path) -> ProjectConfig:
         data = tomllib.load(f)
 
     project = data.get("project", {})
-    roles_dir = project.get("roles_dir") or project.get("agents_dir", ".agents/roles")
+    roles_dir = project.get("roles_dir", ".agents/roles")
 
     raw_targets = data.get("targets", {})
     targets = {}
