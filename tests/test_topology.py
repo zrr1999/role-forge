@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from agent_caster.models import AgentDef, HierarchyConfig, TargetConfig
-from agent_caster.topology import TopologyError, validate_agents, validate_output_layout
+from role_forge.models import AgentDef, HierarchyConfig, TargetConfig
+from role_forge.topology import TopologyError, validate_agents, validate_output_layout
 
 
 def test_validate_agents_resolves_hierarchy_graph() -> None:

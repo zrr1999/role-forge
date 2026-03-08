@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from agent_caster.models import AgentDef, ModelConfig, TargetConfig
+from role_forge.models import AgentDef, ModelConfig, TargetConfig
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 

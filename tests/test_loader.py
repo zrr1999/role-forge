@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from agent_caster.loader import LoadError, _split_frontmatter, load_agents, parse_agent_file
+from role_forge.loader import LoadError, _split_frontmatter, load_agents, parse_agent_file
 
 
 def test_load_agents_from_fixtures(fixtures_dir):

@@ -1,8 +1,8 @@
 """Tests for OpenCode adapter."""
 
-from agent_caster.adapters.opencode import OpenCodeAdapter
-from agent_caster.groups import SAFE_BASH_PATTERNS
-from agent_caster.models import AgentDef, ModelConfig, TargetConfig
+from role_forge.adapters.opencode import OpenCodeAdapter
+from role_forge.groups import SAFE_BASH_PATTERNS
+from role_forge.models import AgentDef, ModelConfig, TargetConfig
 
 
 def test_cast_explorer(sample_explorer, opencode_config, snapshot):
@@ -60,7 +60,7 @@ def test_temperature_default_subagent(opencode_config, snapshot):
 
 def test_cast_all_fixtures(fixtures_dir, opencode_config, snapshot):
     """Cast all fixture agents and verify output count and content."""
-    from agent_caster.loader import load_agents
+    from role_forge.loader import load_agents
 
     agents = load_agents(fixtures_dir / ".agents" / "roles")
     adapter = OpenCodeAdapter()

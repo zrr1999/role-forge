@@ -1,8 +1,8 @@
 """Tests for Claude Code adapter."""
 
-from agent_caster.adapters.claude import ClaudeAdapter
-from agent_caster.groups import SAFE_BASH_PATTERNS
-from agent_caster.models import AgentDef, TargetConfig
+from role_forge.adapters.claude import ClaudeAdapter
+from role_forge.groups import SAFE_BASH_PATTERNS
+from role_forge.models import AgentDef, TargetConfig
 
 
 def test_cast_aligner(sample_aligner, claude_config, snapshot):

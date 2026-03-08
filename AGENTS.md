@@ -1,4 +1,4 @@
-# agent-caster 开发指南
+# role-forge 开发指南
 
 提交和 PR 规范见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
@@ -38,5 +38,5 @@ src/agent_caster/
 
 1. 在 `src/agent_caster/adapters/` 下创建新模块，继承 `BaseAdapter`
 2. 在 `adapters/__init__.py` 的内置 registry 中注册，或通过 entry point 提供第三方 adapter
-3. 在 `pyproject.toml` 的 `[project.entry-points."agent_caster.adapters"]` 中注册
+3. 在 `pyproject.toml` 的 `[project.entry-points."role_forge.adapters"]` 中注册；旧的 `agent_caster.adapters` 也继续兼容
 4. 在 `tests/` 下添加对应的 snapshot 测试

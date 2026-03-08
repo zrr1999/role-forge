@@ -1,12 +1,12 @@
-# Contributing to agent-caster
+# Contributing to role-forge
 
 感谢你的贡献！本文档面向人类贡献者，说明参与开发的基本流程。
 
 ## 开发环境
 
 ```bash
-git clone https://github.com/zrr1999/agent-caster.git
-cd agent-caster
+git clone https://github.com/zrr1999/role-forge.git
+cd role-forge
 just install   # 安装依赖
 just ci        # 完整 CI 流程（format + lint + check + test）
 ```
@@ -75,7 +75,7 @@ just ci        # 完整 CI 流程（format + lint + check + test）
 
 1. 在 `src/agent_caster/adapters/` 下创建新模块，继承 `BaseAdapter`
 2. 在 `adapters/__init__.py` 中注册内置 adapter，或以第三方包形式暴露 entry point
-3. 在 `pyproject.toml` 的 `[project.entry-points."agent_caster.adapters"]` 中注册
+3. 在 `pyproject.toml` 的 `[project.entry-points."role_forge.adapters"]` 中注册；旧的 `agent_caster.adapters` 也继续兼容
 4. 在 `tests/` 下添加对应的 snapshot 测试
 
 ## 版本管理

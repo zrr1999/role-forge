@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from agent_caster.registry import (
+from role_forge.registry import (
     CACHE_DIR,  # noqa: F401
     fetch_source,
     find_agents_dir,
@@ -80,7 +80,7 @@ def test_fetch_local_source_not_found():
         fetch_source(src)
 
 
-@patch("agent_caster.registry.subprocess.run")
+@patch("role_forge.registry.subprocess.run")
 def test_fetch_github_clones_to_cache(mock_run, tmp_path):
     """First fetch should git clone to cache dir."""
     mock_run.return_value = MagicMock(returncode=0)
@@ -95,7 +95,7 @@ def test_fetch_github_clones_to_cache(mock_run, tmp_path):
     assert "clone" in clone_call.args[0]
 
 
-@patch("agent_caster.registry.subprocess.run")
+@patch("role_forge.registry.subprocess.run")
 def test_fetch_github_pulls_existing_cache(mock_run, tmp_path):
     """If cache exists, should git fetch + checkout instead of clone."""
     mock_run.return_value = MagicMock(returncode=0)

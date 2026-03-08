@@ -1,12 +1,14 @@
-# agent-caster
+# role-forge
 
-Install canonical role definitions and render them across coding agent tools.
+Canonical role-definition toolkit for coding agents.
 
 ## Why
 
 AI coding agent 工具（Claude Code、OpenCode、Cursor、Codex、Windsurf、Aider...）各有自己的 agent 配置格式。团队维护多工具 agent 定义面临配置碎片化、工具锁定和安全配置重复维护等问题。
 
-**agent-caster** 让你从 GitHub 安装可复用的 role definitions，并把同一份 canonical source render 成各工具需要的格式。
+**role-forge** 让你从 GitHub 安装可复用的 role definitions，并把同一份 canonical source render 成各工具需要的格式。
+
+兼容迁移期内，旧命令 `agent-caster` 和旧 Python 包名 `agent_caster` 仍可继续使用。
 
 | 能力 | 支持 |
 |------|:---:|
@@ -20,38 +22,38 @@ AI coding agent 工具（Claude Code、OpenCode、Cursor、Codex、Windsurf、Ai
 ## Installation
 
 ```bash
-uv tool install agent-caster
+uv tool install role-forge
 ```
 
 ## Quick Start
 
 ```bash
 # 从 GitHub 安装 role definitions（交互式选择）
-agent-caster add PFCCLab/precision-agents
+role-forge add PFCCLab/precision-agents
 
 # 跳过交互，安装全部并自动 cast
-agent-caster add PFCCLab/precision-agents -y
+role-forge add PFCCLab/precision-agents -y
 
 # 安装到全局
-agent-caster add PFCCLab/precision-agents -y --global
+role-forge add PFCCLab/precision-agents -y --global
 
 # 从本地路径安装
-agent-caster add ./my-agents
+role-forge add ./my-agents
 
 # 指定 render 目标
-agent-caster add PFCCLab/precision-agents -y --target claude
+role-forge add PFCCLab/precision-agents -y --target claude
 
 # 列出已安装的 agent
-agent-caster list
+role-forge list
 
 # 重新 render 到平台格式
-agent-caster render --target claude
+role-forge render --target claude
 
 # 更新已安装的 agent
-agent-caster update PFCCLab/precision-agents
+role-forge update PFCCLab/precision-agents
 
 # 移除 agent
-agent-caster remove explorer
+role-forge remove explorer
 ```
 
 ## Canonical Role Definition
@@ -94,7 +96,7 @@ Read-only code exploration role. Traces execution paths and produces reports.
 
 ## Source Repo Convention
 
-agent-caster 从源仓库中查找 role definitions：
+role-forge 从源仓库中查找 role definitions：
 
 1. 有 `roles.toml` 且指定 `roles_dir`（或兼容旧字段 `agents_dir`）→ 使用该路径
 2. 否则有 `refit.toml` 且指定 `roles_dir` / `agents_dir` → 使用该路径
@@ -120,6 +122,19 @@ agent-caster 从源仓库中查找 role definitions：
 - `adapter`: 一个具体工具的 render backend
 
 CLI 中 `cast` 仍可用，但 `render` 是推荐名称。
+
+## Migration
+
+- 新名字：`role-forge`
+- 兼容 CLI：`agent-caster`
+- 兼容 Python import：`agent_caster`
+
+推荐新集成逐步迁移到：
+
+```bash
+uv tool install role-forge
+role-forge render
+```
 
 ## Development
 

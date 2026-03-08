@@ -1,7 +1,7 @@
 """Tests for Cursor adapter."""
 
-from agent_caster.adapters.cursor import CursorAdapter
-from agent_caster.models import AgentDef, ModelConfig, TargetConfig
+from role_forge.adapters.cursor import CursorAdapter
+from role_forge.models import AgentDef, ModelConfig, TargetConfig
 
 CURSOR_CONFIG = TargetConfig(
     name="cursor",

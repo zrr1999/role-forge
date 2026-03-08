@@ -1,6 +1,6 @@
 """Tests for config.py."""
 
-from agent_caster.config import CONFIG_FILENAME, LEGACY_CONFIG_FILENAME, find_config, load_config
+from role_forge.config import CONFIG_FILENAME, LEGACY_CONFIG_FILENAME, find_config, load_config
 
 
 def test_load_config_from_fixtures(fixtures_dir):

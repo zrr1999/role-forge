@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typer.testing import CliRunner
 
-from agent_caster.cli import app
+from role_forge.cli import app
 
 runner = CliRunner()
 
@@ -12,7 +12,7 @@ runner = CliRunner()
 def test_version():
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
-    assert "agent-caster" in result.output
+    assert "role-forge" in result.output
 
 
 # -- add command ---------------------------------------------------------------

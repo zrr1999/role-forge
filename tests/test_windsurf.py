@@ -1,7 +1,7 @@
 """Tests for Windsurf adapter."""
 
-from agent_caster.adapters.windsurf import WindsurfAdapter
-from agent_caster.models import AgentDef, ModelConfig, TargetConfig
+from role_forge.adapters.windsurf import WindsurfAdapter
+from role_forge.models import AgentDef, ModelConfig, TargetConfig
 
 WINDSURF_CONFIG = TargetConfig(
     name="windsurf",
