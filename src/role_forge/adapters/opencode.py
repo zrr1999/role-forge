@@ -6,7 +6,7 @@ Migrated from precision-alignment-agent/adapters/opencode/generate.py.
 from __future__ import annotations
 
 from role_forge.adapters.base import BaseAdapter
-from role_forge.groups import BASH_POLICIES, TOOL_GROUPS
+from role_forge.groups import ALL_TOOL_IDS, BASH_POLICIES, TOOL_GROUPS
 from role_forge.models import AgentDef, TargetConfig
 
 
@@ -36,6 +36,8 @@ class OpenCodeAdapter(BaseAdapter):
                 if cap in BASH_POLICIES:
                     bash_allowed.extend(BASH_POLICIES[cap])
                     tools["bash"] = True
+                elif cap == "all":
+                    tools.update(dict.fromkeys(ALL_TOOL_IDS, True))
                 # Built-in tool group
                 elif cap in TOOL_GROUPS:
                     for tool_id in TOOL_GROUPS[cap]:
@@ -78,7 +80,23 @@ class OpenCodeAdapter(BaseAdapter):
         delegates: list[str],
         tools: dict[str, bool],
         role: str,
+        *,
+        full_access: bool = False,
     ) -> dict:
+        if full_access:
+            return {
+                "bash": "allow",
+                "task": "allow",
+                "edit": "allow",
+                "write": "allow",
+                "read": "allow",
+                "glob": "allow",
+                "grep": "allow",
+                "webfetch": "allow",
+                "websearch": "allow",
+                "question": "allow",
+            }
+
         perm: dict = {}
 
         if bash_allowed:
@@ -90,6 +108,11 @@ class OpenCodeAdapter(BaseAdapter):
             perm["task"] = {"*": "deny"}
             for d in delegates:
                 perm["task"][d] = "allow"
+        elif tools.get("task"):
+            perm["task"] = "allow"
+
+        if tools.get("bash") and not bash_allowed:
+            perm["bash"] = "allow"
 
         if tools.get("edit"):
             perm["edit"] = "allow"
@@ -155,7 +178,13 @@ class OpenCodeAdapter(BaseAdapter):
         model = self._resolve_model(agent.model, config.model_map)
         temperature = self._resolve_temperature(agent)
         skills = [s for s in agent.skills if s]
-        permission = self._build_permissions(bash_allowed, delegates, tools, agent.role)
+        permission = self._build_permissions(
+            bash_allowed,
+            delegates,
+            tools,
+            agent.role,
+            full_access="all" in agent.capabilities,
+        )
 
         fm = self._serialize_frontmatter(
             description, mode, model, temperature, skills, tools, permission

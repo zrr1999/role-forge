@@ -100,6 +100,43 @@ def test_read_group_maps_to_claude_tools(claude_config):
     assert set(tools) == {"Glob", "Grep", "Read"}
 
 
+def test_all_capability_maps_to_all_claude_tools(claude_config):
+    agent = AgentDef(
+        name="test",
+        description="Test",
+        capabilities=["all"],
+    )
+    adapter = ClaudeAdapter()
+    tools, bash_patterns, delegates = adapter._expand_capabilities(
+        agent.capabilities, claude_config.capability_map
+    )
+    assert set(tools) == {
+        "Bash",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Read",
+        "Task",
+        "WebFetch",
+        "WebSearch",
+        "Write",
+    }
+    assert bash_patterns == []
+    assert delegates == []
+
+
+def test_all_capability_renders_unrestricted_bash_and_task(claude_config):
+    agent = AgentDef(
+        name="test",
+        description="Test",
+        capabilities=["all"],
+    )
+    adapter = ClaudeAdapter()
+    outputs = adapter.cast([agent], claude_config)
+    content = outputs[0].content
+    assert "tools: Bash, Edit, Glob, Grep, Read, Task, WebFetch, WebSearch, Write" in content
+
+
 def test_default_model_map():
     adapter = ClaudeAdapter()
     assert "reasoning" in adapter.default_model_map

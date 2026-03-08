@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import ClassVar
 
 from role_forge.adapters.base import BaseAdapter
-from role_forge.groups import BASH_POLICIES, TOOL_GROUPS
+from role_forge.groups import ALL_TOOL_IDS, BASH_POLICIES, TOOL_GROUPS
 from role_forge.models import AgentDef, TargetConfig
 
 # Semantic tool id -> Claude Code tool name
@@ -20,6 +20,14 @@ _TOOL_NAME_MAP: dict[str, str] = {
     "websearch": "WebSearch",
     "task": "Task",
 }
+
+_ALL_CLAUDE_TOOLS: list[str] = sorted(
+    {
+        claude_name
+        for tool_id in ALL_TOOL_IDS
+        if (claude_name := _TOOL_NAME_MAP.get(tool_id)) and claude_name != "Bash"
+    }
+)
 
 
 class ClaudeAdapter(BaseAdapter):
@@ -50,6 +58,9 @@ class ClaudeAdapter(BaseAdapter):
                 # Bash policy group
                 if cap in BASH_POLICIES:
                     bash_patterns.extend(BASH_POLICIES[cap])
+                elif cap == "all":
+                    tools.update(_ALL_CLAUDE_TOOLS)
+                    tools.add("Bash")
                 # Built-in tool group
                 elif cap in TOOL_GROUPS:
                     for tool_id in TOOL_GROUPS[cap]:
@@ -93,6 +104,8 @@ class ClaudeAdapter(BaseAdapter):
 
         for tool in tools:
             if tool == "Bash":
+                if not bash_patterns:
+                    allowed.append(tool)
                 continue  # handled via patterns below
             allowed.append(tool)
 

@@ -6,8 +6,10 @@ build-backend = "hatchling.build"
 name = "role-forge"
 version = "0.0.1"
 description = "Canonical role-definition toolkit for coding agents"
+readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
+authors = [{ name = "Zhan Rongrui", email = "2742392377@qq.com" }]
 dependencies = [
   "loguru>=0.7.0",
   "pydantic>=2.0",
@@ -30,7 +32,10 @@ Repository = "https://github.com/zrr1999/role-forge"
 
 [dependency-groups]
 dev = [
+  { include-group = "docs" },
   { include-group = "test" },
+]
+docs = [
   "zensical>=0.0.24",
 ]
 test = [
@@ -62,10 +67,13 @@ exclude_lines = [
   "\\.\\.\\.",
 ]
 
+[tool.coverage.xml]
+output = "coverage.xml"
+
 [tool.ruff]
 line-length = 100
 src = ["src", "tests"]
-target-version = "py311"
+target-version = "py312"
 exclude = ["src/role_forge/_version.py"]
 
 [tool.ruff.lint]

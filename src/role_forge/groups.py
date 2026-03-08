@@ -23,6 +23,18 @@ TOOL_GROUPS: dict[str, list[str]] = {
     "write-code": ["write", "edit"],
 }
 
+ALL_TOOL_IDS: list[str] = [
+    "read",
+    "glob",
+    "grep",
+    "write",
+    "edit",
+    "webfetch",
+    "websearch",
+    "bash",
+    "task",
+]
+
 # -- Bash policies -------------------------------------------------------------
 # Each policy is a list of glob patterns for allowed bash commands.
 # Pattern convention: "cmd*" matches both bare command and command with arguments.

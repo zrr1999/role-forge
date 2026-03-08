@@ -65,7 +65,7 @@ def test_cast_all_fixtures(fixtures_dir, opencode_config, snapshot):
     agents = load_agents(fixtures_dir / ".agents" / "roles")
     adapter = OpenCodeAdapter()
     outputs = adapter.cast(agents, opencode_config)
-    assert len(outputs) == 3
+    assert len(outputs) == 8
     contents = {o.path.split("/")[-1]: o.content for o in outputs}
     assert contents == snapshot
 
@@ -167,6 +167,60 @@ def test_write_group_expands_tools(opencode_config):
     adapter = OpenCodeAdapter()
     tools, _, _ = adapter._expand_capabilities(agent.capabilities, opencode_config.capability_map)
     assert tools == {"write": True, "edit": True}
+
+
+def test_all_capability_expands_all_tools(opencode_config):
+    agent = AgentDef(
+        name="test",
+        description="Test",
+        capabilities=["all"],
+    )
+    adapter = OpenCodeAdapter()
+    tools, bash_allowed, delegates = adapter._expand_capabilities(
+        agent.capabilities, opencode_config.capability_map
+    )
+    assert tools == {
+        "read": True,
+        "glob": True,
+        "grep": True,
+        "write": True,
+        "edit": True,
+        "webfetch": True,
+        "websearch": True,
+        "bash": True,
+        "task": True,
+    }
+    assert bash_allowed == []
+    assert delegates == []
+
+
+def test_all_capability_grants_full_permissions(opencode_config):
+    agent = AgentDef(
+        name="test",
+        description="Test",
+        capabilities=["all"],
+    )
+    adapter = OpenCodeAdapter()
+    outputs = adapter.cast([agent], opencode_config)
+    content = outputs[0].content
+    assert '"read": true' in content
+    assert '"glob": true' in content
+    assert '"grep": true' in content
+    assert '"write": true' in content
+    assert '"edit": true' in content
+    assert '"webfetch": true' in content
+    assert '"websearch": true' in content
+    assert '"bash": true' in content
+    assert '"task": true' in content
+    assert '"bash": allow' in content
+    assert '"task": allow' in content
+    assert '"read": allow' in content
+    assert '"glob": allow' in content
+    assert '"grep": allow' in content
+    assert '"write": allow' in content
+    assert '"edit": allow' in content
+    assert '"webfetch": allow' in content
+    assert '"websearch": allow' in content
 
 
 def test_custom_tier_falls_back_to_reasoning(opencode_config):

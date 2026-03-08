@@ -25,4 +25,4 @@ jobs:
         run: uv sync --dev
 
       - name: Build documentation
-        run: just docs-build
+        run: uv run zensical build

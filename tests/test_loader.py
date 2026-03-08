@@ -9,11 +9,16 @@ from role_forge.loader import LoadError, _split_frontmatter, load_agents, parse_
 
 def test_load_agents_from_fixtures(fixtures_dir):
     agents = load_agents(fixtures_dir / ".agents" / "roles")
-    assert len(agents) == 3
+    assert len(agents) == 8
     names = [a.name for a in agents]
     assert "explorer" in names
     assert "aligner" in names
     assert "orchestrator" in names
+    assert "nested-coordinator" in names
+    assert "feature-lead" in names
+    assert "impl-worker" in names
+    assert "qa-worker" in names
+    assert "research-helper" in names
 
 
 def test_parse_explorer(fixtures_dir):
@@ -180,3 +185,21 @@ def test_parse_hierarchy_metadata(tmp_path: Path) -> None:
     assert agent.hierarchy.role_class == "lead"
     assert agent.hierarchy.max_delegate_depth == 1
     assert agent.hierarchy.allowed_children == ["l3/worker"]
+
+
+def test_load_nested_fixture_tree_preserves_canonical_ids(fixtures_dir) -> None:
+    agents = load_agents(fixtures_dir / ".agents" / "roles")
+    by_name = {agent.name: agent for agent in agents}
+
+    assert by_name["nested-coordinator"].canonical_id == "nested/nested-coordinator"
+    assert by_name["feature-lead"].canonical_id == "nested/feature-lead"
+    assert by_name["impl-worker"].canonical_id == "nested/workers/impl-worker"
+    assert by_name["qa-worker"].canonical_id == "nested/workers/qa-worker"
+    assert by_name["research-helper"].canonical_id == "nested/support/research-helper"
+
+
+def test_parse_nested_fixture_with_all_capability(fixtures_dir) -> None:
+    agent = parse_agent_file(fixtures_dir / ".agents" / "roles" / "nested" / "feature-lead.md")
+    assert agent.name == "feature-lead"
+    assert "all" in agent.capabilities
+    assert agent.hierarchy.level == "L2"

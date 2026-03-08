@@ -73,6 +73,88 @@
       Read-only code exploration agent. Traces execution paths and produces reports.
   
     ''',
+    'feature-lead.md': '''
+      ---
+      description: Nested lead fixture that exercises the `all` capability.
+      mode: subagent
+      model: github-copilot/gpt-5.2-codex
+      temperature: 0.1
+      tools:
+        "read": true
+        "glob": true
+        "grep": true
+        "write": true
+        "edit": true
+        "webfetch": true
+        "websearch": true
+        "bash": true
+        "task": true
+      permission:
+        "bash": allow
+        "task": allow
+        "edit": allow
+        "write": allow
+        "read": allow
+        "glob": allow
+        "grep": allow
+        "webfetch": allow
+        "websearch": allow
+        "question": allow
+      ---
+      
+      # Feature Lead
+      
+      Exercises full capability expansion in a nested fixture.
+  
+    ''',
+    'impl-worker.md': '''
+      ---
+      description: Nested implementation worker fixture.
+      mode: subagent
+      model: github-copilot/gpt-5.2-codex
+      temperature: 0.1
+      tools:
+        "read": true
+        "glob": true
+        "grep": true
+        "write": true
+        "edit": true
+      permission:
+        "edit": allow
+        "write": allow
+      ---
+      
+      # Impl Worker
+      
+      Implements changes in nested fixture tests.
+  
+    ''',
+    'nested-coordinator.md': '''
+      ---
+      description: Nested test coordinator for recursive fixture coverage.
+      mode: primary
+      model: github-copilot/claude-opus-4.6
+      temperature: 0.2
+      tools:
+        "read": true
+        "glob": true
+        "grep": true
+        "write": true
+        "task": true
+      permission:
+        "task":
+          "*": deny
+          "nested/feature-lead": allow
+          "nested/support/research-helper": allow
+        "write": allow
+        "question": allow
+      ---
+      
+      # Nested Coordinator
+      
+      Coordinates the nested test roles.
+  
+    ''',
     'orchestrator.md': '''
       ---
       description: Orchestrator. Coordinates sub-agents.
@@ -103,6 +185,69 @@
       # Orchestrator
       
       Coordinates exploration and alignment sub-agents.
+  
+    ''',
+    'qa-worker.md': '''
+      ---
+      description: Nested QA worker fixture.
+      mode: subagent
+      model: github-copilot/claude-opus-4.6
+      temperature: 0.05
+      tools:
+        "read": true
+        "glob": true
+        "grep": true
+        "bash": true
+      permission:
+        "bash":
+          "*": deny
+          "echo*": allow
+          "printf*": allow
+          "wc*": allow
+          "sort*": allow
+          "uniq*": allow
+          "head*": allow
+          "tail*": allow
+          "cut*": allow
+          "tr*": allow
+          "diff*": allow
+          "pwd": allow
+          "basename*": allow
+          "dirname*": allow
+          "date*": allow
+          "uname*": allow
+          "whoami": allow
+          "which*": allow
+          "git log*": allow
+          "git diff*": allow
+          "git status*": allow
+          "git branch*": allow
+          "git show*": allow
+          "git rev-parse*": allow
+          "git remote*": allow
+      ---
+      
+      # QA Worker
+      
+      Verifies nested fixture behavior.
+  
+    ''',
+    'research-helper.md': '''
+      ---
+      description: Nested research helper fixture.
+      mode: subagent
+      model: github-copilot/claude-opus-4.6
+      temperature: 0.05
+      tools:
+        "read": true
+        "glob": true
+        "grep": true
+        "webfetch": true
+      ---
+      
+      # Research Helper
+      
+      Collects supporting context for nested fixture tests.
   
     ''',
   })
