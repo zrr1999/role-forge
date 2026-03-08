@@ -126,7 +126,6 @@ def test_find_roles_dir_with_roles_toml(tmp_path):
     assert result == agents
 
 
-
 def test_find_roles_dir_with_legacy_roles_dir_key(tmp_path):
     """roles.toml roles_dir remains supported for backward compatibility."""
     (tmp_path / "roles.toml").write_text('[project]\nroles_dir = "my-agents"')
